@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Text Reader</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --panel: #ffffff;
+    --text: #1f1f1f;
+    --muted: #6b6b6b;
+    --accent: #2563eb;
+    --border: #d9d9d6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 20px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 200px;
+    font-size: 1.05rem;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    resize: vertical;
+  }
+  .controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+  }
+  #status {
+    margin-top: 14px;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>English Text Reader</h1>
+  <textarea id="text" placeholder="Paste English text here..."></textarea>
+
+  <div class="controls">
+    <button id="playBtn">Play</button>
+  </div>
+
+  <div id="status"></div>
+</main>
+
+<script>
+  var textEl = document.getElementById('text');
+  var playBtn = document.getElementById('playBtn');
+  var statusEl = document.getElementById('status');
+
+  function pickVoice(voices, lang) {
+    var exact = voices.find(function (v) { return v.lang === lang; });
+    if (exact) return exact;
+    var prefix = lang.split('-')[0];
+    var partial = voices.find(function (v) { return v.lang.indexOf(prefix) === 0; });
+    return partial || null;
+  }
+
+  playBtn.addEventListener('click', function () {
+    var text = textEl.value.trim();
+    if (!text) return;
+    var lang = 'en-GB';
+    var utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    var voices = speechSynthesis.getVoices();
+    var voice = pickVoice(voices, lang);
+    if (voice) utterance.voice = voice;
+    speechSynthesis.speak(utterance);
+    statusEl.textContent = 'Reading...';
+  });
+</script>
+</body>
+</html>
