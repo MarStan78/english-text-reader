@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildPrompt } from './worker.js';
+import { buildPrompt, voiceNameForGender } from './worker.js';
 
 test('buildPrompt uses the British instruction by default accent value', () => {
   const result = buildPrompt('Hello there.', 'british');
@@ -20,4 +20,17 @@ test('buildPrompt treats any non-"american" value as British', () => {
 test('buildPrompt includes the original text unmodified after the instruction', () => {
   const result = buildPrompt('Line one.\nLine two.', 'british');
   assert.match(result, /Line one\.\nLine two\.$/);
+});
+
+test('voiceNameForGender returns Orus for male', () => {
+  assert.equal(voiceNameForGender('male'), 'Orus');
+});
+
+test('voiceNameForGender returns Kore for female', () => {
+  assert.equal(voiceNameForGender('female'), 'Kore');
+});
+
+test('voiceNameForGender treats any non-"female" value as male', () => {
+  assert.equal(voiceNameForGender('nonsense'), 'Orus');
+  assert.equal(voiceNameForGender(undefined), 'Orus');
 });

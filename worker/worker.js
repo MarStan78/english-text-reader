@@ -5,6 +5,10 @@ export function buildPrompt(text, accent) {
   return instruction + '\n\n' + text;
 }
 
+export function voiceNameForGender(gender) {
+  return gender === 'female' ? 'Kore' : 'Orus';
+}
+
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 
 const ALLOWED_ORIGINS = ['null', 'https://REPLACE-WITH-YOUR-GITHUB-PAGES-ORIGIN'];
@@ -56,6 +60,7 @@ export default {
 
     const text = typeof body.text === 'string' ? body.text.trim() : '';
     const accent = body.accent === 'american' ? 'american' : 'british';
+    const voiceName = voiceNameForGender(body.voice);
 
     if (!text) {
       return jsonResponse({ error: 'text is required' }, 400, origin);
@@ -76,7 +81,7 @@ export default {
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName } },
             },
           },
         }),

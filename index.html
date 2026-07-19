@@ -90,6 +90,11 @@
     <label><input type="radio" name="accent" value="american"> American English</label>
   </div>
 
+  <div class="accent-choice">
+    <label><input type="radio" name="voice" value="male" checked> Głos męski</label>
+    <label><input type="radio" name="voice" value="female"> Głos żeński</label>
+  </div>
+
   <div class="controls">
     <button id="playBtn" disabled>Play</button>
     <button id="pauseBtn" disabled>Pause</button>
@@ -164,6 +169,10 @@
     return document.querySelector('input[name="accent"]:checked').value;
   }
 
+  function getSelectedVoice() {
+    return document.querySelector('input[name="voice"]:checked').value;
+  }
+
   function hasText() {
     return textEl.value.trim().length > 0;
   }
@@ -226,7 +235,7 @@
     fetch(PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text, accent: getSelectedAccent() }),
+      body: JSON.stringify({ text: text, accent: getSelectedAccent(), voice: getSelectedVoice() }),
     })
       .then(function (response) {
         return response.json().then(function (data) {
