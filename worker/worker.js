@@ -11,7 +11,7 @@ export function voiceNameForGender(gender) {
 
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 
-const ALLOWED_ORIGINS = ['null', 'https://REPLACE-WITH-YOUR-GITHUB-PAGES-ORIGIN'];
+const ALLOWED_ORIGINS = ['null', 'https://marstan78.github.io'];
 
 function corsHeaders(origin) {
   const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];

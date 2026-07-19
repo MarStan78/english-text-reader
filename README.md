@@ -1,7 +1,10 @@
 # English Text Reader (Gemini TTS)
 
-Paste English text, pick British or American English, click Play — the
-page reads it aloud using Gemini's natural-sounding text-to-speech.
+Paste English text, pick British or American English and a male or female
+voice, click Play — the page reads it aloud using Gemini's natural-sounding
+text-to-speech.
+
+**Live:** https://marstan78.github.io/english-text-reader/
 
 ## How it works
 
@@ -44,7 +47,7 @@ index.html` on Windows) once `PROXY_URL` points at your deployed worker.
 ## Deploy the frontend
 
 Push this repository to GitHub and enable GitHub Pages (Settings → Pages →
-deploy from the `main` branch, root folder). `index.html` is the entry
+deploy from the `master` branch, root folder). `index.html` is the entry
 point.
 
 ## Run the worker's tests
