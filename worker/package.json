@@ -1,0 +1,5 @@
+{
+  "name": "tts-reader-worker",
+  "private": true,
+  "type": "module"
+}
