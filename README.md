@@ -21,7 +21,11 @@ Two parts:
 4. Set your Gemini API key as a secret (get one free at
    [aistudio.google.com](https://aistudio.google.com)):
    `wrangler secret put GEMINI_API_KEY`
-5. Copy the deployed URL Wrangler prints and paste it into `index.html` as
+5. After deploying the frontend to GitHub Pages (see below), edit
+   `worker/worker.js`'s `ALLOWED_ORIGINS` array to replace the placeholder
+   with your real GitHub Pages origin (e.g. `https://username.github.io`),
+   then run `wrangler deploy` again from `worker/` to apply it.
+6. Copy the deployed URL Wrangler prints and paste it into `index.html` as
    the `PROXY_URL` value.
 
 ## Run the frontend locally

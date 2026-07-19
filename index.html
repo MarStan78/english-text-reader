@@ -110,6 +110,7 @@
   var audioEl = new Audio();
 
   var appState = 'idle'; // 'idle' | 'loading' | 'playing' | 'paused'
+  var currentAudioUrl = null;
 
   function base64ToBytes(base64) {
     var binary = atob(base64);
@@ -165,6 +166,13 @@
 
   function hasText() {
     return textEl.value.trim().length > 0;
+  }
+
+  function revokeCurrentAudioUrl() {
+    if (currentAudioUrl) {
+      URL.revokeObjectURL(currentAudioUrl);
+      currentAudioUrl = null;
+    }
   }
 
   function refreshButtons() {
@@ -236,7 +244,9 @@
         var sampleRate = parseSampleRate(result.data.mimeType);
         var wavBytes = pcmBytesToWavBytes(pcmBytes, sampleRate);
         var blob = new Blob([wavBytes], { type: 'audio/wav' });
-        audioEl.src = URL.createObjectURL(blob);
+        revokeCurrentAudioUrl();
+        currentAudioUrl = URL.createObjectURL(blob);
+        audioEl.src = currentAudioUrl;
         appState = 'playing';
         statusEl.textContent = 'Czytanie...';
         refreshButtons();
@@ -259,6 +269,7 @@
   stopBtn.addEventListener('click', function () {
     audioEl.pause();
     audioEl.currentTime = 0;
+    revokeCurrentAudioUrl();
     appState = 'idle';
     statusEl.textContent = '';
     refreshButtons();
