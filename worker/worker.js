@@ -37,6 +37,12 @@ export default {
       return jsonResponse({ error: 'Method not allowed' }, 405, origin);
     }
 
+    const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const rateLimitResult = await env.RATE_LIMITER.limit({ key: clientIp });
+    if (!rateLimitResult.success) {
+      return jsonResponse({ error: 'Too many requests, please try again later' }, 429, origin);
+    }
+
     if (origin !== null && !ALLOWED_ORIGINS.includes(origin)) {
       return jsonResponse({ error: 'Origin not allowed' }, 403, origin);
     }

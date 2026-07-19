@@ -1,3 +1,11 @@
 name = "tts-reader-proxy"
 main = "worker.js"
 compatibility_date = "2026-07-19"
+
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 20
+  period = 60

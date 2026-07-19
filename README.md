@@ -11,6 +11,14 @@ Two parts:
   secret and proxies text-to-speech requests, so the key is never exposed
   to visitors.
 
+The worker restricts requests to an allowlist of origins (`ALLOWED_ORIGINS`
+in `worker/worker.js`) and rate-limits each caller to 20 requests per 60
+seconds (see `[[ratelimits]]` in `worker/wrangler.toml`) to bound abuse of
+your free Gemini quota. Neither is a hard guarantee — a determined caller
+that omits the `Origin` header bypasses the allowlist, and the rate limiter
+is approximate, not a strict global cap — but together they stop casual
+misuse of a publicly reachable URL.
+
 ## Deploy the worker
 
 1. Install the Cloudflare CLI: `npm install -g wrangler` (on Windows
