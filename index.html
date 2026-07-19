@@ -69,6 +69,10 @@
     color: white;
     cursor: pointer;
   }
+  button:disabled {
+    background: #b9c6e6;
+    cursor: not-allowed;
+  }
   #status {
     margin-top: 14px;
     color: var(--muted);
@@ -87,7 +91,9 @@
   </div>
 
   <div class="controls">
-    <button id="playBtn">Play</button>
+    <button id="playBtn" disabled>Play</button>
+    <button id="pauseBtn" disabled>Pause</button>
+    <button id="stopBtn" disabled>Stop</button>
   </div>
 
   <div id="status"></div>
@@ -98,8 +104,12 @@
 
   var textEl = document.getElementById('text');
   var playBtn = document.getElementById('playBtn');
+  var pauseBtn = document.getElementById('pauseBtn');
+  var stopBtn = document.getElementById('stopBtn');
   var statusEl = document.getElementById('status');
   var audioEl = new Audio();
+
+  var appState = 'idle'; // 'idle' | 'loading' | 'playing' | 'paused'
 
   function base64ToBytes(base64) {
     var binary = atob(base64);
@@ -153,12 +163,57 @@
     return document.querySelector('input[name="accent"]:checked').value;
   }
 
+  function hasText() {
+    return textEl.value.trim().length > 0;
+  }
+
+  function refreshButtons() {
+    if (appState === 'loading') {
+      playBtn.disabled = true;
+      playBtn.textContent = 'Play';
+      pauseBtn.disabled = true;
+      stopBtn.disabled = true;
+    } else if (appState === 'playing') {
+      playBtn.disabled = true;
+      playBtn.textContent = 'Play';
+      pauseBtn.disabled = false;
+      stopBtn.disabled = false;
+    } else if (appState === 'paused') {
+      playBtn.disabled = false;
+      playBtn.textContent = 'Resume';
+      pauseBtn.disabled = true;
+      stopBtn.disabled = false;
+    } else {
+      playBtn.disabled = !hasText();
+      playBtn.textContent = 'Play';
+      pauseBtn.disabled = true;
+      stopBtn.disabled = true;
+    }
+  }
+
+  textEl.addEventListener('input', refreshButtons);
+
+  audioEl.addEventListener('ended', function () {
+    appState = 'idle';
+    statusEl.textContent = 'Zakończono.';
+    refreshButtons();
+  });
+
   playBtn.addEventListener('click', function () {
+    if (appState === 'paused') {
+      audioEl.play();
+      appState = 'playing';
+      statusEl.textContent = 'Czytanie...';
+      refreshButtons();
+      return;
+    }
+
     var text = textEl.value.trim();
     if (!text) return;
 
+    appState = 'loading';
     statusEl.textContent = 'Generowanie głosu...';
-    playBtn.disabled = true;
+    refreshButtons();
 
     fetch(PROXY_URL, {
       method: 'POST',
@@ -172,11 +227,29 @@
         var wavBytes = pcmBytesToWavBytes(pcmBytes, sampleRate);
         var blob = new Blob([wavBytes], { type: 'audio/wav' });
         audioEl.src = URL.createObjectURL(blob);
+        appState = 'playing';
         statusEl.textContent = 'Czytanie...';
-        playBtn.disabled = false;
+        refreshButtons();
         audioEl.play();
       });
   });
+
+  pauseBtn.addEventListener('click', function () {
+    audioEl.pause();
+    appState = 'paused';
+    statusEl.textContent = 'Wstrzymano.';
+    refreshButtons();
+  });
+
+  stopBtn.addEventListener('click', function () {
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    appState = 'idle';
+    statusEl.textContent = '';
+    refreshButtons();
+  });
+
+  refreshButtons();
 </script>
 </body>
 </html>
