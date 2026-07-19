@@ -220,10 +220,20 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: text, accent: getSelectedAccent() }),
     })
-      .then(function (response) { return response.json(); })
-      .then(function (data) {
-        var pcmBytes = base64ToBytes(data.audioBase64);
-        var sampleRate = parseSampleRate(data.mimeType);
+      .then(function (response) {
+        return response.json().then(function (data) {
+          return { ok: response.ok, data: data };
+        });
+      })
+      .then(function (result) {
+        if (!result.ok || !result.data.audioBase64) {
+          appState = 'idle';
+          statusEl.textContent = 'Usługa czytania tekstu jest chwilowo niedostępna. Spróbuj ponownie.';
+          refreshButtons();
+          return;
+        }
+        var pcmBytes = base64ToBytes(result.data.audioBase64);
+        var sampleRate = parseSampleRate(result.data.mimeType);
         var wavBytes = pcmBytesToWavBytes(pcmBytes, sampleRate);
         var blob = new Blob([wavBytes], { type: 'audio/wav' });
         audioEl.src = URL.createObjectURL(blob);
@@ -231,6 +241,11 @@
         statusEl.textContent = 'Czytanie...';
         refreshButtons();
         audioEl.play();
+      })
+      .catch(function () {
+        appState = 'idle';
+        statusEl.textContent = 'Nie udało się połączyć z usługą czytania tekstu. Sprawdź połączenie i spróbuj ponownie.';
+        refreshButtons();
       });
   });
 
