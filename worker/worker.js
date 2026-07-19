@@ -74,7 +74,13 @@ export default {
       return jsonResponse({ error: 'Gemini API error', status: geminiResponse.status }, 502);
     }
 
-    const geminiData = await geminiResponse.json();
+    let geminiData;
+    try {
+      geminiData = await geminiResponse.json();
+    } catch (e) {
+      return jsonResponse({ error: 'Invalid Gemini API response' }, 502);
+    }
+
     const candidate = geminiData && geminiData.candidates && geminiData.candidates[0];
     const part = candidate && candidate.content && candidate.content.parts && candidate.content.parts[0];
     const inlineData = part && part.inlineData;
