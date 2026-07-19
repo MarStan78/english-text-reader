@@ -78,29 +78,84 @@
 </main>
 
 <script>
+  var PROXY_URL = 'https://REPLACE-WITH-YOUR-WORKER-URL.workers.dev';
+
   var textEl = document.getElementById('text');
   var playBtn = document.getElementById('playBtn');
   var statusEl = document.getElementById('status');
+  var audioEl = new Audio();
 
-  function pickVoice(voices, lang) {
-    var exact = voices.find(function (v) { return v.lang === lang; });
-    if (exact) return exact;
-    var prefix = lang.split('-')[0];
-    var partial = voices.find(function (v) { return v.lang.indexOf(prefix) === 0; });
-    return partial || null;
+  function base64ToBytes(base64) {
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  function parseSampleRate(mimeType) {
+    var match = /rate=(\d+)/.exec(mimeType || '');
+    return match ? parseInt(match[1], 10) : 24000;
+  }
+
+  function pcmBytesToWavBytes(pcmBytes, sampleRate) {
+    var numChannels = 1;
+    var bitsPerSample = 16;
+    var byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+    var blockAlign = numChannels * (bitsPerSample / 8);
+    var dataSize = pcmBytes.length;
+    var buffer = new ArrayBuffer(44 + dataSize);
+    var view = new DataView(buffer);
+
+    function writeString(offset, str) {
+      for (var i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
+      }
+    }
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    var wavBytes = new Uint8Array(buffer);
+    wavBytes.set(pcmBytes, 44);
+    return wavBytes;
   }
 
   playBtn.addEventListener('click', function () {
     var text = textEl.value.trim();
     if (!text) return;
-    var lang = 'en-GB';
-    var utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    var voices = speechSynthesis.getVoices();
-    var voice = pickVoice(voices, lang);
-    if (voice) utterance.voice = voice;
-    speechSynthesis.speak(utterance);
-    statusEl.textContent = 'Reading...';
+
+    statusEl.textContent = 'Generowanie głosu...';
+    playBtn.disabled = true;
+
+    fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text, accent: 'british' }),
+    })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        var pcmBytes = base64ToBytes(data.audioBase64);
+        var sampleRate = parseSampleRate(data.mimeType);
+        var wavBytes = pcmBytesToWavBytes(pcmBytes, sampleRate);
+        var blob = new Blob([wavBytes], { type: 'audio/wav' });
+        audioEl.src = URL.createObjectURL(blob);
+        statusEl.textContent = 'Czytanie...';
+        playBtn.disabled = false;
+        audioEl.play();
+      });
   });
 </script>
 </body>
